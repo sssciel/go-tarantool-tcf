@@ -1,0 +1,87 @@
+version: "2"
+
+run:
+  timeout: 3m
+
+formatters:
+  enable:
+    - goimports
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+
+linters:
+  default: all
+
+  disable:
+    - dupl
+    - cyclop
+    - wsl
+    - nlreturn
+    - ireturn
+    - godox
+    - gocognit
+    - funlen
+    - maintidx
+    - exhaustruct # Replaced by exhaustruct_v5.
+    - gomodguard # Replaced by gomodguard_v2.
+    - noinlineerr # Allow scoped error variables in if statements.
+
+  exclusions:
+    generated: lax
+    rules:
+      - path: _test.go
+        linters:
+          - wrapcheck
+          - err113
+          - funlen
+      - path: ^pool_test\.go$
+        linters:
+          - testpackage # The tests exercise the private route setter.
+      - linters:
+          - exhaustruct_v5
+        # These types use zero-value defaults for optional settings.
+        text: '^(tcf\.Options|tarantool\.(NetDialer|Opts)|pool\.(Instance|Opts)) is missing field'
+
+  settings:
+    varnamelen:
+      ignore-names:
+        - tt
+        - ok
+        - tb
+      ignore-decls:
+        - t T
+    revive:
+      rules:
+        - name: var-naming
+          arguments:
+            - []
+            - []
+            - - skip-package-name-checks: true
+
+    godot:
+      scope: all
+    lll:
+      line-length: 120
+      tab-width: 4
+    wsl_v5:
+      allow-first-in-block: true
+      allow-whole-block: false
+      branch-max-lines: 2
+      case-max-lines: 0
+      default: all
+    wrapcheck:
+      # Preserve the errors exposed by context and the underlying pool.
+      ignore-sig-regexps:
+        - '^func \(context\.Context\)\.Err\('
+        - '^func \(\*github\.com/tarantool/go-tarantool/v3/pool\.Pool\)\.(ConnectedNow|ConfiguredTimeout|NewPrepared|NewStream|NewWatcher)\('
+    depguard:
+      rules:
+        main:
+          files:
+            - "$all"
+          allow:
+            - $gostd
+            - "github.com/sssciel/go-tarantool-tcf"
+            - "github.com/tarantool/go-tarantool/v3"
